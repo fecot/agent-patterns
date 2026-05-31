@@ -1,0 +1,16 @@
+occurred_on,department,category,title,body,status,priority,assignee,tags
+2026-05-02,Operations,incident,ログイン遅延の報告,一部ユーザーでログインに時間がかかるとの報告。対象は朝の時間帯に集中。,in_progress,high,Aoi Tanaka,latency;login
+2026-05-03,Support,inquiry,エクスポート手順の問い合わせ,Record の CSV エクスポート方法が分からないとの問い合わせ。,resolved,low,Ren Saito,export;howto
+2026-05-04,Operations,maintenance,定期メンテナンスの実施,夜間にストレージの定期メンテナンスを実施。影響は軽微。,closed,medium,Aoi Tanaka,maintenance;storage
+2026-05-05,Sales,request,レポート項目の追加要望,月次 Report に priority 別内訳を追加してほしいとの要望。,open,medium,Mio Kato,report;feature
+2026-05-06,Support,incident,通知が届かない,一部の Notification が宛先に届かないとの報告。再現条件を調査中。,in_progress,high,Ren Saito,notification;bug
+2026-05-07,Operations,inquiry,権限設定の確認,新メンバーの権限範囲についての確認依頼。,resolved,low,Aoi Tanaka,permission;setting
+2026-05-08,Engineering,incident,検索結果の欠落,Knowledge Base の検索で一部 Document がヒットしない事象。,open,high,Sho Yamada,search;rag
+2026-05-09,Sales,request,ダッシュボード改善,Task Board の表示順を変更したいとの要望。,open,low,Mio Kato,dashboard;ux
+2026-05-10,Support,inquiry,ファイル容量の上限,アップロードできるファイルサイズの上限についての質問。,resolved,low,Ren Saito,upload;limit
+2026-05-11,Operations,maintenance,キュー詰まりの解消,Worker のキューが詰まり Job が遅延。再起動で解消。,closed,medium,Sho Yamada,queue;worker
+2026-05-12,Engineering,incident,スコアリングのばらつき,Scoring 結果が再実行ごとに大きく変動するとの指摘。,in_progress,medium,Sho Yamada,scoring;stability
+2026-05-13,Sales,request,連絡先の一括登録,Contact を CSV で一括登録したいとの要望。,open,medium,Mio Kato,contact;import
+2026-05-14,Support,inquiry,承認フローの確認,どの操作に Approval が必要かの確認。,resolved,low,Ren Saito,approval;policy
+2026-05-15,Operations,incident,監査ログの欠落,一部操作の Audit Log が記録されていないとの報告。,open,high,Aoi Tanaka,audit;log
+2026-05-16,Engineering,maintenance,埋め込みモデルの更新,Embedding モデルの差し替えに伴う再インデックス作業。,in_progress,medium,Sho Yamada,embedding;rag

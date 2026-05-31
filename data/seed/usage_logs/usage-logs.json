@@ -1,0 +1,10 @@
+[
+  { "occurred_on": "2026-05-02", "kind": "assistant_invoked", "payload": { "assistant": "knowledge", "count": 14 } },
+  { "occurred_on": "2026-05-02", "kind": "assistant_invoked", "payload": { "assistant": "action", "count": 3 } },
+  { "occurred_on": "2026-05-03", "kind": "assistant_invoked", "payload": { "assistant": "knowledge", "count": 9 } },
+  { "occurred_on": "2026-05-03", "kind": "approval_decided", "payload": { "approved": 2, "rejected": 1 } },
+  { "occurred_on": "2026-05-04", "kind": "report_generated", "payload": { "count": 1 } },
+  { "occurred_on": "2026-05-05", "kind": "assistant_invoked", "payload": { "assistant": "scoring", "count": 5 } },
+  { "occurred_on": "2026-05-06", "kind": "assistant_invoked", "payload": { "assistant": "action", "count": 7 } },
+  { "occurred_on": "2026-05-06", "kind": "approval_decided", "payload": { "approved": 5, "rejected": 0 } }
+]
