@@ -1,3 +1,9 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# ビルドスクリプトの実行を許可する依存。
+# esbuild: vite/tsx が利用。msgpackr-extract: bullmq が利用。
+allowBuilds:
+  esbuild: true
+  msgpackr-extract: true
