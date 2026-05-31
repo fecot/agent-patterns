@@ -109,9 +109,9 @@ LLM_PROVIDER=anthropic  # 本実装は後続フェーズ。
 | Phase | 内容 | 状態 |
 | --- | --- | --- |
 | 0 | Repository 初期化 / Docker / 雛形 | ✅ 実装済み |
-| 1 | DB / Seed / records・documents API | 予定 |
-| 2 | LLM Gateway (mock + openai 骨組み) | 予定 |
-| 3 | Chat UI ⇔ /api/chat (mock 応答) | 予定 |
+| 1 | DB / Seed / records・documents API | ✅ 実装済み |
+| 2 | LLM Gateway (mock + openai 骨組み) | ✅ 実装済み |
+| 3 | Chat UI ⇔ /api/chat (mock 応答) | ✅ 実装済み |
 | 4–10 | Tool Calling / RAG / Approval / Worker / Scoring / Router / Eval | 予定 |
 
 進捗は各 Phase 完了時に更新します。コミット履歴を時系列で追うと、Phase 0 から順に何をどう作ったかが分かるようにしています。

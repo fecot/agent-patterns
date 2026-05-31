@@ -3,6 +3,8 @@ import cors from "@fastify/cors";
 import { env } from "./config/env.js";
 import { recordRoutes } from "./routes/recordRoutes.js";
 import { documentRoutes } from "./routes/documentRoutes.js";
+import { chatRoutes } from "./routes/chatRoutes.js";
+import { auditRoutes } from "./routes/auditRoutes.js";
 
 /**
  * Fastify API サーバのエントリポイント。
@@ -32,6 +34,10 @@ export function buildServer() {
   // 業務データ参照系のルート (Phase 1)。
   app.register(recordRoutes);
   app.register(documentRoutes);
+
+  // Chat と監査ログ (Phase 3)。
+  app.register(chatRoutes);
+  app.register(auditRoutes);
 
   return app;
 }
