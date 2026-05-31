@@ -1,0 +1,30 @@
+[
+  {
+    "title": "ログイン遅延への対応",
+    "problem": "朝の時間帯にログインが遅くなる事象が断続的に発生していた。",
+    "action": "接続プールの上限を引き上げ、遅いクエリにインデックスを追加した。",
+    "result": "遅延の報告は解消し、平均応答時間が改善した。",
+    "tags": ["latency", "login", "database"]
+  },
+  {
+    "title": "通知の不達調査",
+    "problem": "一部の Notification が宛先に届かないという報告があった。",
+    "action": "送信キューのリトライ設定を見直し、失敗時のログを追加した。",
+    "result": "不達は再現しなくなり、失敗時に原因を追跡できるようになった。",
+    "tags": ["notification", "queue", "log"]
+  },
+  {
+    "title": "検索結果の欠落対応",
+    "problem": "Knowledge Base の検索で一部 Document がヒットしなかった。",
+    "action": "チャンク分割の境界を見直し、対象 Document を再インデックスした。",
+    "result": "欠落していた Document が検索にヒットするようになった。",
+    "tags": ["search", "rag", "reindex"]
+  },
+  {
+    "title": "承認フローの明確化",
+    "problem": "どの操作に Approval が必要か、メンバー間で認識がずれていた。",
+    "action": "Approval Policy を更新し、riskLevel と承認要否の対応を明記した。",
+    "result": "high risk 操作が確実に承認を経るようになった。",
+    "tags": ["approval", "policy", "governance"]
+  }
+]

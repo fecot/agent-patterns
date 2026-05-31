@@ -1,0 +1,34 @@
+[
+  {
+    "display_name": "Haruki Mori",
+    "organization": "Acme Internal - Platform",
+    "role": "Reliability Engineer",
+    "expertise_tags": ["latency", "database", "queue"],
+    "notes": "性能・信頼性まわりの相談先。過去にログイン遅延の対応を主導。",
+    "score": 0.92
+  },
+  {
+    "display_name": "Yui Nakamura",
+    "organization": "Acme Internal - Knowledge",
+    "role": "Knowledge Steward",
+    "expertise_tags": ["rag", "search", "documentation"],
+    "notes": "Knowledge Base と検索品質の相談先。",
+    "score": 0.88
+  },
+  {
+    "display_name": "Sota Hayashi",
+    "organization": "Acme Internal - Governance",
+    "role": "Policy Owner",
+    "expertise_tags": ["approval", "audit", "policy"],
+    "notes": "承認フロー・監査ログの設計相談先。",
+    "score": 0.81
+  },
+  {
+    "display_name": "Rina Okada",
+    "organization": "Acme Internal - Support",
+    "role": "Support Lead",
+    "expertise_tags": ["notification", "inquiry", "onboarding"],
+    "notes": "問い合わせ対応と通知運用の相談先。",
+    "score": 0.76
+  }
+]
