@@ -1,6 +1,8 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { env } from "./config/env.js";
+import { recordRoutes } from "./routes/recordRoutes.js";
+import { documentRoutes } from "./routes/documentRoutes.js";
 
 /**
  * Fastify API サーバのエントリポイント。
@@ -24,9 +26,12 @@ export function buildServer() {
 
   app.get("/", async () => ({
     name: "business-agent-training-lab API",
-    phase: "0",
-    hint: "GET /health で疎通確認。records/documents/chat は後続フェーズで追加。",
+    hint: "GET /health で疎通確認。GET /api/records, /api/documents が利用可能。",
   }));
+
+  // 業務データ参照系のルート (Phase 1)。
+  app.register(recordRoutes);
+  app.register(documentRoutes);
 
   return app;
 }
