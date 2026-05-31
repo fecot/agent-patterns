@@ -1,0 +1,19 @@
+{
+  "name": "business-agent-training-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "業界固有語を使わない汎用『社内業務エージェント開発』学習用リポジトリ (ローカル Docker 完結型)",
+  "packageManager": "pnpm@11.5.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:api": "pnpm --filter @lab/api dev",
+    "dev:web": "pnpm --filter @lab/web dev",
+    "dev:worker": "pnpm --filter @lab/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "db:migrate": "pnpm --filter @lab/api db:migrate",
+    "db:seed": "pnpm --filter @lab/api db:seed"
+  }
+}
