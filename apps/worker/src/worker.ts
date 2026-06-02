@@ -1,16 +1,21 @@
 import { Worker } from "bullmq";
-import IORedis from "ioredis";
-import { REPORT_QUEUE_NAME, redisConnection } from "./queues/reportQueue.js";
+import { REPORT_QUEUE_NAME, redisConnection } from "./queues/reportQueue";
 
 /**
  * Background Worker のエントリポイント。
  *
  * Phase 0 では「Redis に繋がり、BullMQ Worker が起動する」ことの確認だけを行う。
  * 集計・LLM 分析・docx 生成・MinIO 保存などの本処理は Phase 7 で実装する。
+ *
+ * 接続は ioredis インスタンスを自前で作らず、接続情報を BullMQ に渡して
+ * BullMQ 側に管理させる（ioredis の二重バージョン問題を避ける）。
  */
-const connection = new IORedis(redisConnection.url, {
-  maxRetriesPerRequest: null, // BullMQ の要件
-});
+const url = new URL(redisConnection.url);
+const connection = {
+  host: url.hostname,
+  port: Number(url.port || 6379),
+  ...(url.password ? { password: url.password } : {}),
+};
 
 const worker = new Worker(
   REPORT_QUEUE_NAME,
@@ -33,7 +38,6 @@ worker.on("failed", (job, err) => {
 async function shutdown() {
   console.log("[worker] shutting down...");
   await worker.close();
-  await connection.quit();
   process.exit(0);
 }
 
