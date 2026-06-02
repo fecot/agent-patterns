@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { query } from "../db/client.js";
+import { query } from "../db/client";
 
 /** GET /api/records — 業務レコード一覧 (引き継ぎドキュメント §20.5)。 */
 export async function recordRoutes(app: FastifyInstance) {

@@ -1,4 +1,4 @@
-import type { AssistantKind } from "../api.js";
+import type { AssistantKind } from "../api";
 
 const OPTIONS: { kind: AssistantKind; label: string }[] = [
   { kind: "auto", label: "Auto (Router)" },

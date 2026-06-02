@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RiskLevel } from "./tools.js";
+import { RiskLevel } from "./tools";
 
 /** Approval の状態遷移 (引き継ぎドキュメント §10.2)。 */
 export const ApprovalStatus = z.enum([

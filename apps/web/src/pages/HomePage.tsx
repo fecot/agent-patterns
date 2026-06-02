@@ -1,4 +1,4 @@
-import { ChatPanel } from "../components/ChatPanel.js";
+import { ChatPanel } from "../components/ChatPanel";
 
 export function HomePage() {
   return (

@@ -1,9 +1,9 @@
-import { env } from "../../config/env.js";
+import { env } from "../../config/env";
 import type {
   GenerateOptions,
   GenerateResult,
   LlmGateway,
-} from "../types.js";
+} from "../types";
 
 /**
  * OpenAI Provider（骨組み）。

@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { ChatRequest, type ChatResponse } from "@lab/shared";
-import { query } from "../db/client.js";
-import { llmGateway } from "../llm/llmGateway.js";
-import { logAudit } from "../logs/auditLogger.js";
+import { query } from "../db/client";
+import { llmGateway } from "../llm/llmGateway";
+import { logAudit } from "../logs/auditLogger";
 
 // 学習用の固定ユーザー (seed と一致)。認証は本リポジトリの対象外。
 const TRAINEE_USER_ID = "00000000-0000-0000-0000-000000000010";

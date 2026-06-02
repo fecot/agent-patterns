@@ -1,10 +1,10 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { env } from "./config/env.js";
-import { recordRoutes } from "./routes/recordRoutes.js";
-import { documentRoutes } from "./routes/documentRoutes.js";
-import { chatRoutes } from "./routes/chatRoutes.js";
-import { auditRoutes } from "./routes/auditRoutes.js";
+import { env } from "./config/env";
+import { recordRoutes } from "./routes/recordRoutes";
+import { documentRoutes } from "./routes/documentRoutes";
+import { chatRoutes } from "./routes/chatRoutes";
+import { auditRoutes } from "./routes/auditRoutes";
 
 /**
  * Fastify API サーバのエントリポイント。
