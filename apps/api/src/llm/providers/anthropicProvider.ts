@@ -2,7 +2,7 @@ import type {
   GenerateOptions,
   GenerateResult,
   LlmGateway,
-} from "../types.js";
+} from "../types";
 
 /**
  * Anthropic Provider（未実装）。

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { sendChat, type AssistantKind, type ChatSource } from "../api.js";
-import { BuddySelector } from "./BuddySelector.js";
+import { sendChat, type AssistantKind, type ChatSource } from "../api";
+import { BuddySelector } from "./BuddySelector";
 
 interface UiMessage {
   role: "user" | "assistant";

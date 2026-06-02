@@ -1,8 +1,8 @@
-import { env } from "../config/env.js";
-import type { LlmGateway } from "./types.js";
-import { MockProvider } from "./providers/mockProvider.js";
-import { OpenAiProvider } from "./providers/openaiProvider.js";
-import { AnthropicProvider } from "./providers/anthropicProvider.js";
+import { env } from "../config/env";
+import type { LlmGateway } from "./types";
+import { MockProvider } from "./providers/mockProvider";
+import { OpenAiProvider } from "./providers/openaiProvider";
+import { AnthropicProvider } from "./providers/anthropicProvider";
 
 /**
  * LLM_PROVIDER に応じて Provider を選ぶファクトリ。

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { query } from "../db/client.js";
+import { query } from "../db/client";
 
 /** GET /api/documents — Knowledge Base のドキュメント一覧 (引き継ぎドキュメント §20.4)。 */
 export async function documentRoutes(app: FastifyInstance) {

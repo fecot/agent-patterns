@@ -1,5 +1,5 @@
 import pg from "pg";
-import { env } from "../config/env.js";
+import { env } from "../config/env";
 
 /**
  * PostgreSQL 接続プール。アプリ全体で 1 つを共有する。

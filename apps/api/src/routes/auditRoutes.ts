@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { query } from "../db/client.js";
+import { query } from "../db/client";
 
 /**
  * GET /api/audit-logs?requestId=... (引き継ぎドキュメント §20.6)。

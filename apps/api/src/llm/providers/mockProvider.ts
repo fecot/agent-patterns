@@ -2,7 +2,7 @@ import type {
   GenerateOptions,
   GenerateResult,
   LlmGateway,
-} from "../types.js";
+} from "../types";
 
 /**
  * Mock Provider。API キーなしで動作する (引き継ぎドキュメント §8.3)。

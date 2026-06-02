@@ -1,5 +1,5 @@
 import type { AuditEventType } from "@lab/shared";
-import { query } from "../db/client.js";
+import { query } from "../db/client";
 
 /**
  * Audit Logger (引き継ぎドキュメント §11)。
