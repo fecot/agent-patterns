@@ -67,13 +67,14 @@ export function ChatPanel() {
           <textarea
             rows={2}
             value={input}
-            placeholder="質問や依頼を入力 (Enter で送信 / Shift+Enter で改行)"
+            placeholder="質問や依頼を入力 (⌘/Ctrl+Enter で送信 / Enter で改行)"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              // IME 変換中（日本語入力の確定 Enter など）は送信しない。
+              // IME 変換中（日本語入力の確定 Enter など）は無視。
               // isComposing は変換中に true。keyCode 229 は一部ブラウザの保険。
               if (e.nativeEvent.isComposing || e.keyCode === 229) return;
-              if (e.key === "Enter" && !e.shiftKey) {
+              // 誤爆防止のため素の Enter は改行のまま。送信は ⌘/Ctrl+Enter に限定。
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 void handleSend();
               }
