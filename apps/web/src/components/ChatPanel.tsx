@@ -70,6 +70,9 @@ export function ChatPanel() {
             placeholder="質問や依頼を入力 (Enter で送信 / Shift+Enter で改行)"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
+              // IME 変換中（日本語入力の確定 Enter など）は送信しない。
+              // isComposing は変換中に true。keyCode 229 は一部ブラウザの保険。
+              if (e.nativeEvent.isComposing || e.keyCode === 229) return;
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 void handleSend();
