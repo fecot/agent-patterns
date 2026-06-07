@@ -13,6 +13,7 @@
     "dev:worker": "pnpm --filter @lab/worker dev",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r --if-present test",
+    "eval": "pnpm --filter @lab/api eval",
     "db:migrate": "pnpm --filter @lab/api db:migrate",
     "db:seed": "pnpm --filter @lab/api db:seed"
   }
