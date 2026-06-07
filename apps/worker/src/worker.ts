@@ -1,11 +1,13 @@
 import { Worker } from "bullmq";
 import { REPORT_QUEUE_NAME, redisConnection } from "./queues/reportQueue";
+import { query } from "./db";
+import { processReportJob } from "./reports/processReportJob";
 
 /**
  * Background Worker のエントリポイント。
  *
- * Phase 0 では「Redis に繋がり、BullMQ Worker が起動する」ことの確認だけを行う。
- * 集計・LLM 分析・docx 生成・MinIO 保存などの本処理は Phase 7 で実装する。
+ * Phase 7: report Job を受け取り、期間内の business_records を集計して
+ * report_jobs.result_json に保存する。docx 生成・MinIO 保存は Phase 8。
  *
  * 接続は ioredis インスタンスを自前で作らず、接続情報を BullMQ に渡して
  * BullMQ 側に管理させる（ioredis の二重バージョン問題を避ける）。
@@ -20,9 +22,11 @@ const connection = {
 const worker = new Worker(
   REPORT_QUEUE_NAME,
   async (job) => {
-    // Phase 7 で generateReportJob に差し替える。
-    console.log(`[worker] received job ${job.id} (まだ未実装)`);
-    return { ok: true, note: "stub" };
+    const jobId = String(job.data?.jobId ?? "");
+    console.log(`[worker] processing report job ${jobId}`);
+    const outcome = await processReportJob({ query }, jobId);
+    console.log(`[worker] job ${jobId} -> ${outcome.status}`);
+    return outcome;
   },
   { connection },
 );
