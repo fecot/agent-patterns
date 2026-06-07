@@ -6,6 +6,7 @@ import { documentRoutes } from "./routes/documentRoutes";
 import { chatRoutes } from "./routes/chatRoutes";
 import { auditRoutes } from "./routes/auditRoutes";
 import { approvalRoutes } from "./routes/approvalRoutes";
+import { reportRoutes } from "./routes/reportRoutes";
 
 /**
  * Fastify API サーバのエントリポイント。
@@ -42,6 +43,9 @@ export function buildServer() {
 
   // Human Approval (Phase 6)。
   app.register(approvalRoutes);
+
+  // 非同期レポート (Phase 7)。
+  app.register(reportRoutes);
 
   return app;
 }
