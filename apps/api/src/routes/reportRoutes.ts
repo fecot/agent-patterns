@@ -4,6 +4,7 @@ import { ReportRequest } from "@lab/shared";
 import { query } from "../db/client";
 import { logAudit } from "../logs/auditLogger";
 import { enqueueReportJob } from "../queue/reportQueue";
+import { presignedDownloadUrl } from "../storage/fileStore";
 
 const TRAINEE_USER_ID = "00000000-0000-0000-0000-000000000010";
 
@@ -48,5 +49,19 @@ export async function reportRoutes(app: FastifyInstance) {
     );
     if (result.rowCount === 0) return reply.code(404).send({ error: "report job not found" });
     return { job: result.rows[0] };
+  });
+
+  // 生成物のダウンロード URL を発行する (Phase 8)。
+  app.get("/api/reports/:id/download", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const result = await query<{ resultFileKey: string | null }>(
+      `SELECT result_file_key AS "resultFileKey" FROM report_jobs WHERE id = $1`,
+      [id],
+    );
+    if (result.rowCount === 0) return reply.code(404).send({ error: "report job not found" });
+    const key = result.rows[0]!.resultFileKey;
+    if (!key) return reply.code(409).send({ error: "まだ生成物がありません（処理中/失敗）" });
+    const url = await presignedDownloadUrl(key);
+    return { url };
   });
 }
