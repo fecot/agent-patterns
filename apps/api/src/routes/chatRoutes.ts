@@ -10,6 +10,7 @@ import type { DocumentHit } from "../tools/searchDocumentsTool";
 import type { QueryFn } from "../tools/searchRecordsTool";
 import { createApproval } from "../approvals/approvalService";
 import { inputGuardrail, outputGuardrail, SAFE_FALLBACK_REPLY } from "../guardrails/guardrails";
+import { resolveAssistant } from "../agent/router";
 
 // 学習用の固定ユーザー (seed と一致)。認証は本リポジトリの対象外。
 const TRAINEE_USER_ID = "00000000-0000-0000-0000-000000000010";
@@ -55,10 +56,14 @@ export async function chatRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "入力が安全性チェックに引っかかりました", violations: inputCheck.violations });
     }
 
+    // Router (Phase 10): assistant=auto なら依頼内容から担当を解決する。
+    const route = resolveAssistant(assistant, message);
+    const resolvedAssistant = route.assistant;
+
     // 会話を作成し、ユーザー発言を保存。
     const conv = await query<{ id: string }>(
       `INSERT INTO conversations(workspace_id, user_id, assistant) VALUES ($1,$2,$3) RETURNING id`,
-      [workspaceId, TRAINEE_USER_ID, assistant],
+      [workspaceId, TRAINEE_USER_ID, resolvedAssistant],
     );
     const conversationId = conv.rows[0]!.id;
     await query(
@@ -66,13 +71,20 @@ export async function chatRoutes(app: FastifyInstance) {
       [conversationId, message],
     );
 
-    // Router は Phase 10。現状は選択された assistant をそのまま記録する。
+    // Task Board 用に Task を記録する (Phase 10)。完了/失敗で状態を更新する。
+    const task = await query<{ id: string }>(
+      `INSERT INTO tasks(workspace_id, user_id, status, selected_assistant, input_json)
+       VALUES ($1,$2,'running',$3,$4) RETURNING id`,
+      [workspaceId, TRAINEE_USER_ID, resolvedAssistant, JSON.stringify({ message, requested: assistant })],
+    );
+    const taskId = task.rows[0]!.id;
+
     await logAudit({
       workspaceId,
       userId: TRAINEE_USER_ID,
       requestId,
       eventType: "assistant_selected",
-      payload: { assistant },
+      payload: { requested: assistant, resolved: resolvedAssistant, matched: route.matched },
     });
 
     const messages = [
@@ -107,6 +119,7 @@ export async function chatRoutes(app: FastifyInstance) {
         eventType: "guardrail_triggered",
         payload: { stage: "llm", error: err instanceof Error ? err.message : String(err) },
       });
+      await query(`UPDATE tasks SET status = 'error', updated_at = now() WHERE id = $1`, [taskId]);
       return reply.code(502).send({
         error: "LLM 呼び出しに失敗しました",
         detail: err instanceof Error ? err.message : String(err),
@@ -163,7 +176,7 @@ export async function chatRoutes(app: FastifyInstance) {
           riskLevel: tool?.riskLevel ?? "high",
           input: inv.arguments,
           preview: inv.result.preview,
-          requestedByAgent: assistant,
+          requestedByAgent: resolvedAssistant,
         },
       );
       approvals.push({
@@ -175,10 +188,12 @@ export async function chatRoutes(app: FastifyInstance) {
       });
     }
 
+    await query(`UPDATE tasks SET status = 'done', updated_at = now() WHERE id = $1`, [taskId]);
+
     const response: ChatResponse = {
       requestId,
       conversationId,
-      assistant,
+      assistant: resolvedAssistant,
       reply: replyText,
       sources: extractSources(loop.invocations),
       approvals,
