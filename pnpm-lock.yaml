@@ -16,6 +16,9 @@ importers:
       '@lab/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      bullmq:
+        specifier: ^5.34.5
+        version: 5.77.6
       fastify:
         specifier: ^5.2.1
         version: 5.8.5
@@ -75,10 +78,16 @@ importers:
       bullmq:
         specifier: ^5.34.5
         version: 5.77.6
+      pg:
+        specifier: ^8.13.1
+        version: 8.21.0
     devDependencies:
       '@types/node':
         specifier: ^22.10.5
         version: 22.19.19
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.20.0
       tsx:
         specifier: ^4.19.2
         version: 4.22.3
