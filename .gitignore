@@ -25,3 +25,6 @@ pnpm-debug.log*
 # generated / runtime
 coverage/
 data/runtime/
+
+# ブログ記事の素材（非公開。リポジトリには含めない）
+docs/blog/devlog/
