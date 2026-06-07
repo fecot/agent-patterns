@@ -1,7 +1,19 @@
 import { Worker } from "bullmq";
+import { reportFileKey } from "@lab/shared";
 import { REPORT_QUEUE_NAME, redisConnection } from "./queues/reportQueue";
 import { query } from "./db";
-import { processReportJob } from "./reports/processReportJob";
+import { processReportJob, type GenerateFileFn } from "./reports/processReportJob";
+import { renderReportDocx, DOCX_CONTENT_TYPE } from "./reports/renderReport";
+import { MinioFileStore } from "./storage/fileStore";
+
+// docx を生成して MinIO に保存し、命名規約に沿ったキーを返す (Phase 8)。
+const fileStore = new MinioFileStore();
+const generateFile: GenerateFileFn = async ({ jobId, workspaceId, result, meta }) => {
+  const buffer = await renderReportDocx(result, meta);
+  const key = reportFileKey(workspaceId, jobId, "docx");
+  await fileStore.put(key, DOCX_CONTENT_TYPE, buffer);
+  return { fileKey: key, contentType: DOCX_CONTENT_TYPE };
+};
 
 /**
  * Background Worker のエントリポイント。
@@ -24,8 +36,8 @@ const worker = new Worker(
   async (job) => {
     const jobId = String(job.data?.jobId ?? "");
     console.log(`[worker] processing report job ${jobId}`);
-    const outcome = await processReportJob({ query }, jobId);
-    console.log(`[worker] job ${jobId} -> ${outcome.status}`);
+    const outcome = await processReportJob({ query, generateFile }, jobId);
+    console.log(`[worker] job ${jobId} -> ${outcome.status} (file=${outcome.fileKey ?? "none"})`);
     return outcome;
   },
   { connection },

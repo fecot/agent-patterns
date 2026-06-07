@@ -50,6 +50,28 @@ test("集計中の例外で error + error_message", async () => {
   assert.equal(err?.params?.[1], "DB ダウン");
 });
 
+test("generateFile 指定時: ファイル生成し result_file_key と generated_files を保存", async () => {
+  const { query, updates } = fakeQuery({
+    job: { status: "queued", inputJson: input },
+    records: [{ department: "IT" }],
+  });
+  const outcome = await processReportJob(
+    {
+      query,
+      generateFile: async ({ jobId }) => ({
+        fileKey: `reports/ws1/${jobId}.docx`,
+        contentType: "application/docx",
+      }),
+    },
+    "job1",
+  );
+  assert.equal(outcome.status, "success");
+  assert.equal(outcome.fileKey, "reports/ws1/job1.docx");
+  assert.ok(updates.some((u) => /INSERT INTO generated_files/.test(u.text)));
+  const success = updates.find((u) => /status = 'success'/.test(u.text));
+  assert.equal(success?.params?.[2], "reports/ws1/job1.docx"); // result_file_key
+});
+
 test("Job が無ければ例外", async () => {
   const { query } = fakeQuery({ job: null });
   await assert.rejects(processReportJob({ query }, "missing"), /見つかりません/);
