@@ -8,6 +8,7 @@ interface UiMessage {
   content: string;
   sources?: ChatSource[];
   approvals?: ChatApproval[];
+  assistant?: AssistantKind;
 }
 
 // 学習用のため workspaceId は固定値。seed で同じ ID を投入する。
@@ -33,7 +34,13 @@ export function ChatPanel() {
       const res = await sendChat({ message, assistant, workspaceId: WORKSPACE_ID });
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: res.reply, sources: res.sources, approvals: res.approvals },
+        {
+          role: "assistant",
+          content: res.reply,
+          sources: res.sources,
+          approvals: res.approvals,
+          assistant: res.assistant,
+        },
       ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -55,6 +62,9 @@ export function ChatPanel() {
           )}
           {messages.map((m, i) => (
             <div key={i} className={`msg ${m.role}`}>
+              {m.role === "assistant" && m.assistant && (
+                <div className="assistant-badge">担当: {m.assistant}</div>
+              )}
               {m.content}
               {m.sources && m.sources.length > 0 && (
                 <div className="sources">

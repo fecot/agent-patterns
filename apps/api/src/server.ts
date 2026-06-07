@@ -7,6 +7,7 @@ import { chatRoutes } from "./routes/chatRoutes";
 import { auditRoutes } from "./routes/auditRoutes";
 import { approvalRoutes } from "./routes/approvalRoutes";
 import { reportRoutes } from "./routes/reportRoutes";
+import { taskRoutes } from "./routes/taskRoutes";
 
 /**
  * Fastify API サーバのエントリポイント。
@@ -46,6 +47,9 @@ export function buildServer() {
 
   // 非同期レポート (Phase 7)。
   app.register(reportRoutes);
+
+  // Router / Task Board (Phase 10)。
+  app.register(taskRoutes);
 
   return app;
 }
