@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { ToolContext, ToolResult } from "@lab/shared";
 import { query as defaultQuery } from "../db/client";
+import { embedder as defaultEmbedder, type Embedder } from "../llm/embedder";
+import { retrieveChunks } from "../rag/retriever";
 import type { QueryFn } from "./searchRecordsTool";
 import type { BusinessTool } from "./types";
 
@@ -15,39 +17,49 @@ export type DocumentHit = {
   title: string;
   sourcePath: string;
   snippet: string;
+  similarity: number;
+};
+
+export type SearchDocumentsDeps = {
+  query?: QueryFn;
+  embedder?: Embedder;
 };
 
 /**
- * Knowledge Base のドキュメントを検索する Tool (引き継ぎドキュメント §9.3)。
+ * Knowledge Base のドキュメントを検索する Tool (引き継ぎドキュメント §9.3, §12)。
  *
- * Phase 4 では content/title のキーワード一致で返す。
- * Phase 5 で pgvector による意味検索（RAG）に差し替える。
+ * Phase 5: pgvector による意味検索（RAG）。クエリを embedding 化し、
+ * document_chunks を cosine 距離で近い順に返す。根拠が無ければ空で返す。
  * 読み取り専用なので riskLevel = low。
  */
 export function createSearchDocumentsTool(
-  query: QueryFn = defaultQuery as unknown as QueryFn,
+  deps: SearchDocumentsDeps = {},
 ): BusinessTool<SearchDocumentsInput, { documents: DocumentHit[] }> {
+  const query = deps.query ?? (defaultQuery as unknown as QueryFn);
+  const embedder = deps.embedder ?? defaultEmbedder;
+
   return {
     name: "searchDocuments",
     description:
-      "Knowledge Base のドキュメントをキーワードで検索し、根拠として使える抜粋を返す。",
+      "Knowledge Base のドキュメントを意味検索し、根拠として使える抜粋を返す。",
     inputSchema: Input,
     riskLevel: "low",
     async execute(
       input,
       _ctx: ToolContext,
     ): Promise<ToolResult<{ documents: DocumentHit[] }>> {
-      const like = `%${input.query}%`;
-      const result = await query<DocumentHit & Record<string, unknown>>(
-        `SELECT id AS "documentId", title, source_path AS "sourcePath",
-                left(content, 300) AS snippet
-         FROM documents
-         WHERE content ILIKE $1 OR title ILIKE $1
-         ORDER BY source_path ASC
-         LIMIT $2`,
-        [like, input.limit],
+      const chunks = await retrieveChunks(
+        { query, embedder },
+        { query: input.query, limit: input.limit },
       );
-      return { ok: true, data: { documents: result.rows as DocumentHit[] } };
+      const documents: DocumentHit[] = chunks.map((c) => ({
+        documentId: c.documentId,
+        title: c.title,
+        sourcePath: c.sourcePath,
+        snippet: c.snippet.length > 300 ? `${c.snippet.slice(0, 300)}…` : c.snippet,
+        similarity: c.similarity,
+      }));
+      return { ok: true, data: { documents } };
     },
   };
 }
