@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import type { ToolContext } from "@lab/shared";
 import { createSearchRecordsTool, type QueryFn } from "./searchRecordsTool";
 import { createSearchDocumentsTool } from "./searchDocumentsTool";
+import { MockEmbedder } from "../llm/embedder";
 
 const ctx: ToolContext = {
   userId: "u1",
@@ -46,13 +47,23 @@ test("searchRecords: riskLevel は low（承認不要）", () => {
   assert.equal(createSearchRecordsTool(spyQuery([]).fn).riskLevel, "low");
 });
 
-test("searchDocuments: like と limit を渡し documents を返す", async () => {
+test("searchDocuments: RAG でベクトル検索し documents(similarity 付き) を返す", async () => {
   const { fn, calls } = spyQuery([
-    { documentId: "d1", title: "承認ポリシー", sourcePath: "p.md", snippet: "..." },
+    {
+      documentId: "d1",
+      title: "承認ポリシー",
+      sourcePath: "p.md",
+      snippet: "危険操作は承認を通す",
+      similarity: 0.9,
+    },
   ]);
-  const tool = createSearchDocumentsTool(fn);
+  const tool = createSearchDocumentsTool({ query: fn, embedder: new MockEmbedder() });
   const result = await tool.execute({ query: "承認", limit: 4 }, ctx);
   assert.equal(result.ok, true);
-  assert.deepEqual(calls[0]!.params, ["%承認%", 4]);
-  assert.equal((result.data as { documents: unknown[] }).documents.length, 1);
+  // pgvector のベクトルリテラルと limit が渡る。
+  assert.match(String(calls[0]!.params?.[0]), /^\[.+\]$/);
+  assert.equal(calls[0]!.params?.[1], 4);
+  const docs = (result.data as { documents: { similarity: number }[] }).documents;
+  assert.equal(docs.length, 1);
+  assert.equal(docs[0]!.similarity, 0.9);
 });

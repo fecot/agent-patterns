@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { pool } from "./client";
+import { pool, query } from "./client";
+import { embedder } from "../llm/embedder";
+import { indexAllDocuments } from "../rag/indexDocuments";
+import type { QueryFn } from "../tools/searchRecordsTool";
 
 /**
  * seed ランナー。data/seed 配下の汎用サンプルデータを投入する。
@@ -134,8 +137,11 @@ async function seed() {
     );
   }
 
+  // 8) RAG 用に documents を chunk + embedding して index 化する (Phase 5)。
+  const index = await indexAllDocuments({ query: query as unknown as QueryFn, embedder });
+
   console.log(
-    `[seed] done: records=${records.length}, documents=${docFiles.length}, cases=${cases.length}, contacts=${contacts.length}, usage_logs=${logs.length}`,
+    `[seed] done: records=${records.length}, documents=${docFiles.length}, cases=${cases.length}, contacts=${contacts.length}, usage_logs=${logs.length}, chunks=${index.chunks}`,
   );
   await pool.end();
 }
