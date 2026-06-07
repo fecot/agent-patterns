@@ -4,18 +4,22 @@ import { ChatRequest, type ChatResponse } from "@lab/shared";
 import { query } from "../db/client";
 import { llmGateway } from "../llm/llmGateway";
 import { logAudit } from "../logs/auditLogger";
+import { toolRegistry } from "../tools";
+import { runToolLoop, type ToolInvocation } from "../agent/runToolLoop";
+import type { DocumentHit } from "../tools/searchDocumentsTool";
 
 // 学習用の固定ユーザー (seed と一致)。認証は本リポジトリの対象外。
 const TRAINEE_USER_ID = "00000000-0000-0000-0000-000000000010";
 
 const SYSTEM_PROMPT =
-  "あなたは社内業務を支援する Assistant です。簡潔・中立に、根拠があれば添えて回答してください。";
+  "あなたは社内業務を支援する Assistant です。簡潔・中立に、根拠があれば添えて回答してください。" +
+  "必要に応じて提供された Tool を使い、検索結果を踏まえて回答してください。";
 
 /**
  * POST /api/chat (引き継ぎドキュメント §20.1)。
  *
- * Phase 3 では Router を介さず、入力をそのまま LLM Gateway(mock) に渡して応答する。
- * 一連の流れ (入力受領・LLM要求・LLM応答) を Audit Log に残し、
+ * Phase 4: Router を介さず、Tool Calling ループ (LLM→Tool 実行→再入力) を回す。
+ * 一連の流れ (入力受領・LLM要求/応答・Tool 実行) を Audit Log に残し、
  * 会話を conversations/messages に保存する。
  */
 export async function chatRoutes(app: FastifyInstance) {
@@ -46,7 +50,7 @@ export async function chatRoutes(app: FastifyInstance) {
       [conversationId, message],
     );
 
-    // Router は Phase 9。現状は選択された assistant をそのまま記録する。
+    // Router は Phase 10。現状は選択された assistant をそのまま記録する。
     await logAudit({
       workspaceId,
       userId: TRAINEE_USER_ID,
@@ -68,9 +72,17 @@ export async function chatRoutes(app: FastifyInstance) {
       payload: { taskName: "chat.reply", messageCount: messages.length },
     });
 
-    let result;
+    let loop;
     try {
-      result = await llmGateway.generate({ taskName: "chat.reply", messages });
+      loop = await runToolLoop({
+        gateway: llmGateway,
+        registry: toolRegistry,
+        taskName: "chat.reply",
+        messages,
+        ctx: { userId: TRAINEE_USER_ID, workspaceId, requestId },
+        onEvent: (eventType, payload) =>
+          logAudit({ workspaceId, userId: TRAINEE_USER_ID, requestId, eventType, payload }),
+      });
     } catch (err) {
       await logAudit({
         workspaceId,
@@ -85,14 +97,18 @@ export async function chatRoutes(app: FastifyInstance) {
       });
     }
 
-    const replyText = result.text ?? "";
+    const replyText = loop.text;
 
     await logAudit({
       workspaceId,
       userId: TRAINEE_USER_ID,
       requestId,
       eventType: "llm_responded",
-      payload: { provider: result.provider, usage: result.usage },
+      payload: {
+        provider: loop.provider,
+        usage: loop.usage,
+        toolsUsed: loop.invocations.map((i) => i.name),
+      },
     });
 
     await query(
@@ -105,8 +121,23 @@ export async function chatRoutes(app: FastifyInstance) {
       conversationId,
       assistant,
       reply: replyText,
-      sources: [], // RAG は Phase 5 で埋まる
+      sources: extractSources(loop.invocations),
     };
     return response;
   });
+}
+
+/** searchDocuments Tool の結果から回答の根拠 (sources) を組み立てる。 */
+function extractSources(
+  invocations: ToolInvocation[],
+): { documentId: string; title: string }[] {
+  const sources = new Map<string, string>();
+  for (const inv of invocations) {
+    if (inv.name !== "searchDocuments" || !inv.result.ok) continue;
+    const data = inv.result.data as { documents?: DocumentHit[] } | undefined;
+    for (const doc of data?.documents ?? []) {
+      sources.set(doc.documentId, doc.title);
+    }
+  }
+  return [...sources].map(([documentId, title]) => ({ documentId, title }));
 }
