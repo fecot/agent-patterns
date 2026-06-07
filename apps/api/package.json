@@ -8,6 +8,7 @@
     "start": "tsx src/server.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "eval": "tsx src/eval/cli.ts",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:index": "tsx src/db/embedDocuments.ts"
