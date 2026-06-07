@@ -1,15 +1,19 @@
 import { ToolRegistry } from "./registry";
 import { createSearchRecordsTool } from "./searchRecordsTool";
 import { createSearchDocumentsTool } from "./searchDocumentsTool";
+import { createNotificationDraftTool } from "./createNotificationDraftTool";
+import { updateSettingDraftTool } from "./updateSettingDraftTool";
 
 export type { BusinessTool } from "./types";
 export { ToolRegistry } from "./registry";
 
 /**
  * アプリ全体で共有する Tool Registry。
- * Phase 4 は読み取り系の検索 Tool のみ。
- * 書き込み系（createNotificationDraft 等, riskLevel=high）は Phase 6 で追加する。
+ * - 読み取り系（low）: searchRecords / searchDocuments
+ * - 書き込み系（high, 承認必須）: createNotificationDraft / updateSettingDraft
  */
 export const toolRegistry = new ToolRegistry()
   .register(createSearchRecordsTool())
-  .register(createSearchDocumentsTool());
+  .register(createSearchDocumentsTool())
+  .register(createNotificationDraftTool())
+  .register(updateSettingDraftTool());

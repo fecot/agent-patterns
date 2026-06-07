@@ -15,5 +15,14 @@ export interface BusinessTool<I = unknown, O = unknown> {
   // 出力(確定)の型がずれても代入できるようにする。
   inputSchema: z.ZodType<I, z.ZodTypeDef, any>;
   riskLevel: RiskLevel;
+  /**
+   * Chat から呼ばれる入口。書き込み系 Tool はここでは副作用を起こさず、
+   * preview を作って requiresApproval を返す（Phase 6）。
+   */
   execute(input: I, ctx: ToolContext): Promise<ToolResult<O>>;
+  /**
+   * 承認後に実際の副作用を行う（書き込み系のみ実装）。
+   * approvalService が承認済み入力で呼ぶ。
+   */
+  executeApproved?(input: I, ctx: ToolContext): Promise<ToolResult<O>>;
 }

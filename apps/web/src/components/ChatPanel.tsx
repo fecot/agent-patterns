@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { sendChat, type AssistantKind, type ChatSource } from "../api";
+import { sendChat, type AssistantKind, type ChatApproval, type ChatSource } from "../api";
 import { BuddySelector } from "./BuddySelector";
+import { ApprovalCard } from "./ApprovalCard";
 
 interface UiMessage {
   role: "user" | "assistant";
   content: string;
   sources?: ChatSource[];
+  approvals?: ChatApproval[];
 }
 
 // 学習用のため workspaceId は固定値。seed で同じ ID を投入する。
@@ -31,7 +33,7 @@ export function ChatPanel() {
       const res = await sendChat({ message, assistant, workspaceId: WORKSPACE_ID });
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: res.reply, sources: res.sources },
+        { role: "assistant", content: res.reply, sources: res.sources, approvals: res.approvals },
       ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -57,6 +59,13 @@ export function ChatPanel() {
               {m.sources && m.sources.length > 0 && (
                 <div className="sources">
                   根拠: {m.sources.map((s) => s.title).join(", ")}
+                </div>
+              )}
+              {m.approvals && m.approvals.length > 0 && (
+                <div className="approvals">
+                  {m.approvals.map((a) => (
+                    <ApprovalCard key={a.id} approval={a} />
+                  ))}
                 </div>
               )}
             </div>
