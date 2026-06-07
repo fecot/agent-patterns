@@ -50,7 +50,8 @@ async function seed() {
 
   // 2) 対象テーブルを空にする (再実行で重複しないように)。
   await pool.query(
-    `TRUNCATE business_records, cases, contacts, usage_logs, document_chunks, documents RESTART IDENTITY CASCADE`,
+    `TRUNCATE business_records, cases, contacts, usage_logs, document_chunks, documents,
+              notification_targets, settings, approval_rules, notifications RESTART IDENTITY CASCADE`,
   );
 
   // 3) business_records (CSV)。
@@ -137,7 +138,40 @@ async function seed() {
     );
   }
 
-  // 8) RAG 用に documents を chunk + embedding して index 化する (Phase 5)。
+  // 8) Bシナリオ参照データ (Phase 6): 通知先 / 設定 / 承認ルール。
+  const targets = [
+    ["運用チーム", "chat", "ops-team@example.com"],
+    ["管理者", "email", "admin@example.com"],
+    ["サポート窓口", "email", "support@example.com"],
+  ];
+  for (const [name, channel, address] of targets) {
+    await pool.query(
+      `INSERT INTO notification_targets(workspace_id, name, channel, address) VALUES ($1,$2,$3,$4)`,
+      [WORKSPACE_ID, name, channel, address],
+    );
+  }
+
+  const settings = [
+    ["notification.default_channel", "email"],
+    ["report.timezone", "Asia/Tokyo"],
+  ];
+  for (const [key, value] of settings) {
+    await pool.query(
+      `INSERT INTO settings(workspace_id, key, value) VALUES ($1,$2,$3)`,
+      [WORKSPACE_ID, key, value],
+    );
+  }
+
+  // 書き込み系 Tool は承認必須にする（high は安全側に倒すのが既定）。
+  const rules = ["createNotificationDraft", "updateSettingDraft"];
+  for (const toolName of rules) {
+    await pool.query(
+      `INSERT INTO approval_rules(workspace_id, tool_name, requires_approval) VALUES ($1,$2,true)`,
+      [WORKSPACE_ID, toolName],
+    );
+  }
+
+  // 9) RAG 用に documents を chunk + embedding して index 化する (Phase 5)。
   const index = await indexAllDocuments({ query: query as unknown as QueryFn, embedder });
 
   console.log(

@@ -7,6 +7,8 @@ import { logAudit } from "../logs/auditLogger";
 import { toolRegistry } from "../tools";
 import { runToolLoop, type ToolInvocation } from "../agent/runToolLoop";
 import type { DocumentHit } from "../tools/searchDocumentsTool";
+import type { QueryFn } from "../tools/searchRecordsTool";
+import { createApproval } from "../approvals/approvalService";
 
 // 学習用の固定ユーザー (seed と一致)。認証は本リポジトリの対象外。
 const TRAINEE_USER_ID = "00000000-0000-0000-0000-000000000010";
@@ -116,12 +118,44 @@ export async function chatRoutes(app: FastifyInstance) {
       [conversationId, replyText],
     );
 
+    // requiresApproval を返した Tool 呼び出しを承認待ち(pending)として記録する。
+    const approvals: ChatResponse["approvals"] = [];
+    for (const inv of loop.invocations) {
+      if (!inv.result.requiresApproval) continue;
+      const tool = toolRegistry.get(inv.name);
+      const row = await createApproval(
+        {
+          query: query as unknown as QueryFn,
+          registry: toolRegistry,
+          onEvent: (eventType, payload) =>
+            logAudit({ workspaceId, userId: TRAINEE_USER_ID, requestId, eventType, payload }),
+        },
+        {
+          workspaceId,
+          userId: TRAINEE_USER_ID,
+          toolName: inv.name,
+          riskLevel: tool?.riskLevel ?? "high",
+          input: inv.arguments,
+          preview: inv.result.preview,
+          requestedByAgent: assistant,
+        },
+      );
+      approvals.push({
+        id: row.id,
+        toolName: row.toolName,
+        riskLevel: row.riskLevel,
+        status: row.status,
+        preview: row.previewJson,
+      });
+    }
+
     const response: ChatResponse = {
       requestId,
       conversationId,
       assistant,
       reply: replyText,
       sources: extractSources(loop.invocations),
+      approvals,
     };
     return response;
   });

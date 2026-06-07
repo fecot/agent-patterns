@@ -41,5 +41,17 @@ export const ChatResponse = z.object({
   sources: z
     .array(z.object({ documentId: z.string(), title: z.string() }))
     .default([]),
+  /** 承認待ちになった実行案 (high risk Tool, Phase 6)。 */
+  approvals: z
+    .array(
+      z.object({
+        id: z.string(),
+        toolName: z.string(),
+        riskLevel: z.string(),
+        status: z.string(),
+        preview: z.unknown(),
+      }),
+    )
+    .default([]),
 });
 export type ChatResponse = z.infer<typeof ChatResponse>;
