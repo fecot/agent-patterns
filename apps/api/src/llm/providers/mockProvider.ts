@@ -81,6 +81,10 @@ export class MockProvider implements LlmGateway {
   }
 }
 
+/** 通知の下書きを促すキーワード。 */
+const NOTIFY_KEYWORDS = ["通知", "送信", "連絡", "お知らせ", "notify"];
+/** 設定変更を促すキーワード。 */
+const SETTING_KEYWORDS = ["設定", "変更", "setting", "config"];
 /** ドキュメント検索を促すキーワード。 */
 const DOC_KEYWORDS = ["ドキュメント", "文書", "手順", "ポリシー", "ガイド", "規程", "document", "policy"];
 /** レコード検索を促すキーワード。 */
@@ -88,6 +92,7 @@ const RECORD_KEYWORDS = ["レコード", "記録", "案件", "履歴", "record",
 
 /**
  * ユーザー文と利用可能 Tool から、決定的に呼ぶ Tool を選ぶ。
+ * 書き込み系（承認が要る具体的な依頼）を優先し、無ければ検索系。
  * 該当が無ければ null（= Tool を使わず通常応答）。
  */
 function pickToolCall(
@@ -96,6 +101,20 @@ function pickToolCall(
 ): { name: string; arguments: unknown } | null {
   const names = new Set(tools.map((t) => t.name));
   const has = (keywords: string[]) => keywords.some((k) => userText.includes(k));
+
+  // 書き込み系。mock なので宛先/キーは既定値を使う（seed に存在する値）。
+  if (names.has("updateSettingDraft") && has(SETTING_KEYWORDS)) {
+    return {
+      name: "updateSettingDraft",
+      arguments: { key: "notification.default_channel", value: "chat" },
+    };
+  }
+  if (names.has("createNotificationDraft") && has(NOTIFY_KEYWORDS)) {
+    return {
+      name: "createNotificationDraft",
+      arguments: { targetName: "運用チーム", subject: "ご連絡", body: userText },
+    };
+  }
 
   if (names.has("searchDocuments") && has(DOC_KEYWORDS)) {
     return { name: "searchDocuments", arguments: { query: userText, limit: 5 } };
