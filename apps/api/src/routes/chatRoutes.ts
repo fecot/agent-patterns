@@ -9,6 +9,7 @@ import { runToolLoop, type ToolInvocation } from "../agent/runToolLoop";
 import type { DocumentHit } from "../tools/searchDocumentsTool";
 import type { QueryFn } from "../tools/searchRecordsTool";
 import { createApproval } from "../approvals/approvalService";
+import { inputGuardrail, outputGuardrail, SAFE_FALLBACK_REPLY } from "../guardrails/guardrails";
 
 // 学習用の固定ユーザー (seed と一致)。認証は本リポジトリの対象外。
 const TRAINEE_USER_ID = "00000000-0000-0000-0000-000000000010";
@@ -40,6 +41,19 @@ export async function chatRoutes(app: FastifyInstance) {
       eventType: "user_message_received",
       payload: { message, assistant },
     });
+
+    // 入力ガードレール: LLM に渡す前に弾く (Phase 9)。
+    const inputCheck = inputGuardrail(message);
+    if (!inputCheck.ok) {
+      await logAudit({
+        workspaceId,
+        userId: TRAINEE_USER_ID,
+        requestId,
+        eventType: "guardrail_triggered",
+        payload: { stage: "input", violations: inputCheck.violations },
+      });
+      return reply.code(400).send({ error: "入力が安全性チェックに引っかかりました", violations: inputCheck.violations });
+    }
 
     // 会話を作成し、ユーザー発言を保存。
     const conv = await query<{ id: string }>(
@@ -99,7 +113,19 @@ export async function chatRoutes(app: FastifyInstance) {
       });
     }
 
-    const replyText = loop.text;
+    // 出力ガードレール: ユーザーへ返す前に検査し、違反時は安全文に差し替える (Phase 9)。
+    let replyText = loop.text;
+    const outputCheck = outputGuardrail(replyText);
+    if (!outputCheck.ok) {
+      await logAudit({
+        workspaceId,
+        userId: TRAINEE_USER_ID,
+        requestId,
+        eventType: "guardrail_triggered",
+        payload: { stage: "output", violations: outputCheck.violations },
+      });
+      replyText = SAFE_FALLBACK_REPLY;
+    }
 
     await logAudit({
       workspaceId,
